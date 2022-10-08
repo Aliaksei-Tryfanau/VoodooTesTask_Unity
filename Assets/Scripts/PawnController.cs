@@ -1,7 +1,7 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
+﻿using DG.Tweening;
+using System;
 using UnityEngine;
+using UnityEngine.AI;
 
 public class PawnController : MonoBehaviour
 {
@@ -9,6 +9,9 @@ public class PawnController : MonoBehaviour
 
     [SerializeField] private MeshFilter meshFilter;
     [SerializeField] private MeshRenderer meshRenderer;
+    [SerializeField] private SphereCollider sphereCollider;
+    [SerializeField] private NavMeshAgent navMeshAgent;
+    [SerializeField] private float dieTime = 1f;
 
     private int teamId;
     private int health;
@@ -16,24 +19,22 @@ public class PawnController : MonoBehaviour
     private int attackSpeed;
     private int speed;
 
-    public void SetInfo(int argTeamId, int argHealth, int argAttack, int argAttackSpeed, int argSpeed, Mesh argMesh, Material material)
+    public void SetInfo(int argTeamId, int argHealth, int argAttack, int argAttackSpeed, int argSpeed, Mesh argMesh, Material material, float argSizeModifier)
     {
         teamId = argTeamId;
         health = argHealth;
         attack = argAttack;
         attackSpeed = argAttackSpeed;
         speed = argSpeed;
+        transform.localScale = new Vector3(argSizeModifier, argSizeModifier, argSizeModifier);
+        navMeshAgent.radius = argSizeModifier;
         meshFilter.mesh = argMesh;
         meshRenderer.sharedMaterial = material;
     }
 
     public void Activate()
     {
-        if (health <= 0)
-        {
-            EventPawnKilled?.Invoke(this);
-            return;
-        }
+
     }
 
     public void Damage(int damageAmount)
@@ -42,12 +43,16 @@ public class PawnController : MonoBehaviour
 
         if (health <= 0)
         {
-            EventPawnKilled?.Invoke(this);
+            Die();
         }
     }
 
-    private void OnCollisionEnter(Collision collision)
+    private void Die()
     {
-        
+        navMeshAgent.isStopped = true;
+        navMeshAgent.enabled = false;
+        sphereCollider.enabled = false;
+        EventPawnKilled?.Invoke(this);
+        transform.DOMove(transform.position + new Vector3(0f, -2f, 0f), dieTime);
     }
 }

@@ -1,6 +1,6 @@
-﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public enum AttackPattern
 {
@@ -29,35 +29,16 @@ public class PawnsManager : MonoBehaviour
     {
         for (int i = 0; i < spawnCount; i++)
         {
-            var firstTeamPawn = Instantiate(pawnPrefab, firstTeamSpawnPoint.position + new Vector3(0f, 0f, -i), Quaternion.identity, spawnRoot);
-            var shapeModifier = shapeModifiersSO.ShapeModifiers[Random.Range(0, shapeModifiersSO.ShapeModifiers.Length)];
-            var sizeModifier = sizeModifiersSO.SizeModifiers[Random.Range(0, sizeModifiersSO.SizeModifiers.Length)];
-            var colorModifier = colorModifiersSO.ColorModifiers[Random.Range(0, colorModifiersSO.ColorModifiers.Length)];
-            firstTeamPawn.SetInfo(
-                1, 
-                GetHealthWithModifiers(shapeModifier, sizeModifier, colorModifier), 
-                GetAttackWithModifiers(shapeModifier, colorModifier),
-                defaultStats.AttackSpeed + colorModifier.AttackSpeedModifier,
-                defaultStats.Speed + colorModifier.SpeedModifier,
-                shapeModifier.Mesh,
-                colorModifier.ColorMaterial
-                );
+            var firstTeamPawn = Instantiate(pawnPrefab, firstTeamSpawnPoint.position + new Vector3(0f, 0f, 1.5f * -i), Quaternion.identity, spawnRoot);
+            RandomizePawnController(firstTeamPawn, 1);
             firstTeamPawn.EventPawnKilled += OnPawnKilled;
             pawnControllers.Add(firstTeamPawn);
+        }
 
-            var secondTeamPawn = Instantiate(pawnPrefab, secondTeamSpawnPoint.position + new Vector3(0f, 0f, -i), Quaternion.identity, spawnRoot);
-            shapeModifier = shapeModifiersSO.ShapeModifiers[Random.Range(0, shapeModifiersSO.ShapeModifiers.Length)];
-            sizeModifier = sizeModifiersSO.SizeModifiers[Random.Range(0, sizeModifiersSO.SizeModifiers.Length)];
-            colorModifier = colorModifiersSO.ColorModifiers[Random.Range(0, colorModifiersSO.ColorModifiers.Length)];
-            secondTeamPawn.SetInfo(
-                2,
-                GetHealthWithModifiers(shapeModifier, sizeModifier, colorModifier),
-                GetAttackWithModifiers(shapeModifier, colorModifier),
-                defaultStats.AttackSpeed + colorModifier.AttackSpeedModifier,
-                defaultStats.Speed + colorModifier.SpeedModifier,
-                shapeModifier.Mesh,
-                colorModifier.ColorMaterial
-                );
+        for (int i = 0; i < spawnCount; i++)
+        {
+            var secondTeamPawn = Instantiate(pawnPrefab, secondTeamSpawnPoint.position + new Vector3(0f, 0f, 1.5f * -i), Quaternion.identity, spawnRoot);
+            RandomizePawnController(secondTeamPawn, 2);
             secondTeamPawn.EventPawnKilled += OnPawnKilled;
             pawnControllers.Add(secondTeamPawn);
         }
@@ -71,9 +52,52 @@ public class PawnsManager : MonoBehaviour
         }
     }
 
-    private void OnPawnKilled(PawnController pawnController)
-    { 
+    public void StartSimulation()
+    {
+        foreach (var pawnController in pawnControllers)
+        {
+            pawnController.Activate();
+        }
+    }
 
+    public void RandomizePawns()
+    {
+        for (int i = 0; i < spawnCount; i++)
+        {
+            RandomizePawnController(pawnControllers[i], 1);
+        }
+
+        for (int i = 0; i < spawnCount; i++)
+        {
+            RandomizePawnController(pawnControllers[20 + i], 2);
+        }
+    }
+
+    private void RandomizePawnController(PawnController pawnController, int teamId)
+    {
+        var shapeModifier = shapeModifiersSO.ShapeModifiers[Random.Range(0, shapeModifiersSO.ShapeModifiers.Length)];
+        var sizeModifier = sizeModifiersSO.SizeModifiers[Random.Range(0, sizeModifiersSO.SizeModifiers.Length)];
+        var colorModifier = colorModifiersSO.ColorModifiers[Random.Range(0, colorModifiersSO.ColorModifiers.Length)];
+        pawnController.SetInfo(
+            teamId,
+            GetHealthWithModifiers(shapeModifier, sizeModifier, colorModifier),
+            GetAttackWithModifiers(shapeModifier, colorModifier),
+            defaultStats.AttackSpeed + colorModifier.AttackSpeedModifier,
+            defaultStats.Speed + colorModifier.SpeedModifier,
+            shapeModifier.Mesh,
+            colorModifier.ColorMaterial,
+            sizeModifier.ScaleModifier);
+    }
+
+    private void OnPawnKilled(PawnController pawnController)
+    {
+        pawnController.EventPawnKilled -= OnPawnKilled;
+        pawnControllers.Remove(pawnController);
+
+        if (pawnControllers.Count <= 1)
+        {
+            SceneManager.LoadScene(0);
+        }
     }
 
     private int GetHealthWithModifiers(ShapeModifier argShapeModifier, SizeModifier argSizeModifier, ColorModifier argColorModifier)
@@ -82,11 +106,6 @@ public class PawnsManager : MonoBehaviour
         health += argShapeModifier.HealthModifier;
         health += argSizeModifier.HealthModifier;
         health += argColorModifier.HealthModifier;
-
-        if (health == 0)
-        {
-            Debug.Log("");
-        }
 
         return health;
     }

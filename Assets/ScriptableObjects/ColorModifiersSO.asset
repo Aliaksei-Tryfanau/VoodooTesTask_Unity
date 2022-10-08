@@ -14,17 +14,20 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ColorModifiers:
   - Color: 1
+    HealthModifier: 0
     AttackModifier: -15
     AttackSpeedModifier: 4
     SpeedModifier: 10
     ColorMaterial: {fileID: 2100000, guid: bdc7d3a26b606fa44abe7b6fdf54c58a, type: 2}
   - Color: 2
-    AttackModifier: -100
-    AttackSpeedModifier: 20
+    HealthModifier: -100
+    AttackModifier: 20
+    AttackSpeedModifier: 0
     SpeedModifier: -5
     ColorMaterial: {fileID: 2100000, guid: 5b48e9a42caa84e40895a80b5c2086e8, type: 2}
   - Color: 3
-    AttackModifier: 200
-    AttackSpeedModifier: 40
+    HealthModifier: 200
+    AttackModifier: 40
+    AttackSpeedModifier: 0
     SpeedModifier: -9
     ColorMaterial: {fileID: 2100000, guid: db77728507d0282468900bc7ab2f2dac, type: 2}
