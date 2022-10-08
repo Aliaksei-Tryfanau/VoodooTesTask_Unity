@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dc9b215b38fbe324eb1c7a2323e5719c, type: 3}
+  m_Name: ShapeModifiersSO
+  m_EditorClassIdentifier: 
+  ShapeModifiers:
+  - Shape: 1
+    HealthModifier: 100
+    AttackModifier: 10
+    AttackPattern: 1
+    Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+  - Shape: 2
+    HealthModifier: 50
+    AttackModifier: 20
+    AttackPattern: 2
+    Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
