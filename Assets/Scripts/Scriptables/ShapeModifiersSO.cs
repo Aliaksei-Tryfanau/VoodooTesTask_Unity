@@ -7,6 +7,13 @@ public enum Shape
     Sphere = 2
 }
 
+public enum AttackPattern
+{
+    Undefined = 0,
+    TargetClosest = 1,
+    TargetWithLessHP = 2
+}
+
 [System.Serializable]
 public struct ShapeModifier
 {
