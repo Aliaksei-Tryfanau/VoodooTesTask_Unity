@@ -26,7 +26,8 @@ public class PawnController : MonoBehaviour
     {
         if (target != null && canAttack)
         {
-            transform.Translate(speed * Time.deltaTime * (target.transform.position - transform.position).normalized);
+            transform.LookAt(target.transform);
+            transform.Translate(speed * Time.deltaTime * (target.transform.position - transform.position).normalized, Space.World);
         }
     }
 
