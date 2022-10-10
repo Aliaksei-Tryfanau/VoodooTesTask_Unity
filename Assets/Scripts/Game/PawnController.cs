@@ -1,6 +1,7 @@
 ﻿using DG.Tweening;
 using System;
 using UnityEngine;
+using UnityEngine.AI;
 
 public class PawnController : MonoBehaviour
 {
@@ -9,27 +10,19 @@ public class PawnController : MonoBehaviour
     [SerializeField] private MeshFilter meshFilter;
     [SerializeField] private MeshRenderer meshRenderer;
     [SerializeField] private SphereCollider sphereCollider;
-    [SerializeField] private Rigidbody rb;
     [SerializeField] private float targetRefreshRate = 1.5f;
+    [SerializeField] private NavMeshAgent navMeshAgent;
 
     public int TeamId { get; private set; }
     public int Health { get; private set; }
 
     private int attack;
     private int attackSpeed;
-    private float speed;
     private AttackPattern attackPattern;
     private PawnController target;
     private bool canAttack;
-
-    private void Update()
-    {
-        if (target != null && canAttack)
-        {
-            transform.LookAt(target.transform);
-            transform.Translate(speed * Time.deltaTime * (target.transform.position - transform.position).normalized, Space.World);
-        }
-    }
+    private Tween updateTargetTween;
+    private Tween attackDelayTween;
 
     public void SetInfo(int argTeamId, int argHealth, int argAttack, int argAttackSpeed, int argSpeed, 
         Mesh argMesh, Material material, float argSizeModifier, AttackPattern argAttackPatteren)
@@ -39,8 +32,9 @@ public class PawnController : MonoBehaviour
         Health = argHealth;
         attack = argAttack;
         attackSpeed = argAttackSpeed;
-        speed = argSpeed;
         transform.localScale = new Vector3(argSizeModifier, argSizeModifier, argSizeModifier);
+        navMeshAgent.radius = argSizeModifier / 2f;
+        navMeshAgent.speed = argSpeed;
         meshFilter.mesh = argMesh;
         meshRenderer.sharedMaterial = material;
         attackPattern = argAttackPatteren;
@@ -51,6 +45,11 @@ public class PawnController : MonoBehaviour
         canAttack = true;
         FindTarget();
         UpdateTarget();
+
+        if (target != null)
+        {
+            navMeshAgent.SetDestination(target.transform.position);
+        }
     }
 
     public void Damage(int damageAmount)
@@ -81,11 +80,20 @@ public class PawnController : MonoBehaviour
 
     private void UpdateTarget()
     {
-        DOVirtual.DelayedCall(targetRefreshRate, () =>
+        updateTargetTween = DOVirtual.DelayedCall(targetRefreshRate, () =>
         {
-            if (target == null)
+            if (canAttack)
             {
-                FindTarget();
+                if (target == null)
+                {
+                    FindTarget();
+                }
+
+                if (target != null)
+                {
+                    navMeshAgent.isStopped = false;
+                    navMeshAgent.SetDestination(target.transform.position);
+                }
             }
 
             UpdateTarget();
@@ -94,6 +102,16 @@ public class PawnController : MonoBehaviour
 
     private void Die()
     {
+        if (updateTargetTween != null)
+        {
+            updateTargetTween.Kill();
+        }
+
+        if (attackDelayTween != null)
+        {
+            attackDelayTween.Kill();
+        }
+
         EventPawnKilled?.Invoke(this);
         Destroy(gameObject);
     }
@@ -110,7 +128,13 @@ public class PawnController : MonoBehaviour
         {
             enemyPawn.Damage(attack);
             canAttack = false;
-            DOVirtual.DelayedCall(attackSpeed, () =>
+
+            if (navMeshAgent.isOnNavMesh)
+            {
+                navMeshAgent.isStopped = true;
+            }
+
+            attackDelayTween = DOVirtual.DelayedCall(attackSpeed, () =>
             {
                 canAttack = true;
             });
