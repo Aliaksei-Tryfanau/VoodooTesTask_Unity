@@ -27,6 +27,7 @@ public class PawnsManager : MonoBehaviour
     [Header("Spawn fields")] [Space(10f)]
     [SerializeField] private Transform firstTeamSpawnPoint;
     [SerializeField] private Transform secondTeamSpawnPoint;
+    [SerializeField] private Transform additionalPawnSpawnPoint;
     [SerializeField] private int spawnCount = 20;
     [SerializeField] private PawnController pawnPrefab;
     [SerializeField] private Transform spawnRoot;
@@ -151,6 +152,29 @@ public class PawnsManager : MonoBehaviour
 
             return null;
         }
+    }
+
+    public void CreateAdditionalPawn()
+    {
+        var additionalPawn = Instantiate(pawnPrefab, additionalPawnSpawnPoint.position, Quaternion.identity, spawnRoot);
+        var addtionalPawnTeam = Random.Range(1, 3);
+        RandomizePawnController(additionalPawn, addtionalPawnTeam);
+        additionalPawn.EventPawnKilled += OnPawnKilled;
+
+        switch (addtionalPawnTeam)
+        {
+            case 1:
+                firstTeamPawns.Add(additionalPawn);
+                break;
+            case 2:
+                secondTeamPawns.Add(additionalPawn);
+                break;
+            default:
+                Debug.LogError($"Unsupported team id {addtionalPawnTeam}");
+                return;
+        }
+
+        additionalPawn.Activate();
     }
 
     private void RandomizePawnController(PawnController pawnController, int teamId)
